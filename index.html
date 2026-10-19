@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
   <title>TOTP Generator</title>
   <link rel="stylesheet" href="css/bulma-0.9.4.min.css">
   <link rel="shortcut icon" href="favicon.ico" />
@@ -54,10 +55,11 @@
 
 <body>
 
+  <noscript><p class="notification is-warning">此工具需要启用 JavaScript 才能在本地生成验证码。</p></noscript>
   <script defer src="js/vue-3.3.2.global.prod.js"></script>
   <script defer src="js/otpauth-9.1.3.min.js"></script>
   <script defer src="js/clipboard-2.0.6.min.js"></script>
-  <script defer src="js/app.js?v=1.2"></script>
+  <script defer src="js/app.js?v=2.0"></script>
 
   <section id="app" class="section" v-cloak>
 
@@ -66,47 +68,64 @@
       <h1 class="title">TOTP Token Generator</h1>
 
       <div class="field">
-        <label class="label is-uppercase">Your Secret Key</label>
+        <label class="label is-uppercase" for="secret-key">Your Secret Key</label>
         <div class="control">
-          <input class="input" type="text" v-model="secret_key" placeholder="The secret key (in base-32 format)">
+          <input id="secret-key" class="input" type="text" v-model.trim="secret_key" autocomplete="off" spellcheck="false" placeholder="The secret key (in base-32 format)">
         </div>
       </div>
 
       <div class="field">
-        <label class="label is-uppercase">Number of Digits</label>
+        <label class="label is-uppercase" for="digits">Number of Digits</label>
         <div class="control">
-          <input class="input" type="text" v-model="digits" placeholder="Usually 6">
+          <input id="digits" class="input" type="number" v-model.number="digits" min="6" max="8" step="1" inputmode="numeric" placeholder="Usually 6">
         </div>
       </div>
 
       <div class="field">
-        <label class="label is-uppercase">Token Period (in seconds)</label>
+        <label class="label is-uppercase" for="period">Token Period (in seconds)</label>
         <div class="control">
-          <input class="input" type="text" v-model="period" placeholder="Usually 30">
+          <input id="period" class="input" type="number" v-model.number="period" min="1" max="86400" step="1" inputmode="numeric" placeholder="Usually 30">
         </div>
       </div>
 
+      <div class="field">
+        <label class="label is-uppercase" for="algorithm">Algorithm</label>
+        <div class="control">
+          <div class="select">
+            <select id="algorithm" v-model="algorithm">
+              <option>SHA1</option>
+              <option>SHA256</option>
+              <option>SHA512</option>
+            </select>
+          </div>
+        </div>
+      </div>
       <div class="content">
         <span class="has-text-grey is-size-7">Updating in {{ updatingIn }} seconds</span>
-        <progress class="progress is-info is-small" v-bind:value="updatingIn" :max="period"></progress>
+        <progress class="progress is-info is-small" v-bind:value="updatingIn" :max="token ? Number(period) : 30" aria-label="验证码剩余有效时间"></progress>
       </div>
 
       <div class="box">
-        <p class="title is-size-1 has-text-centered " id="token">
-         {{ token }}
+        <p class="title is-size-1 has-text-centered" id="token">
+          {{ token || '------' }}
         </p>
       </div>
+      <div v-if="error" class="notification is-danger" role="alert">
+        {{ error }}
+      </div>
 
-      <!-- <div class="control is-clearfix" style="text-align: center;">
-        <a class="button is-large is-light" id="clipboard-button" data-clipboard-target="#token" title="Copy token to clipboard">
-          <img src="img/clippy.svg" height="36" width="36">
-        </a>
-      </div> -->
       <div class="control is-clearfix" style="text-align: center;">
-        <a id="clipboard-button" data-clipboard-target="#token" title="Copy token to clipboard"
-          class="button is-large is-light">
-          <img src="img/copy.svg" height="65" width="65">
-        </a>
+        <button type="button" id="clipboard-button" :disabled="!token" title="Copy token to clipboard"
+          aria-label="复制验证码" class="button is-large is-light">
+          <img src="img/copy.svg" alt="" height="65" width="65">
+        </button>
+      </div>
+      <p class="has-text-centered" role="status">{{ copyMessage }}</p>
+      <div class="notification is-warning mt-4">
+        密钥仅在本地计算，不会由应用主动上传或保存。请只在可信设备上使用。
+        页面不再预填测试密钥；公开示例密钥不能用于真实账号。
+        避免在 URL 查询参数中放入真实密钥，它可能进入服务器日志和浏览器历史。
+        使用 URL 时优先使用 # 片段，但片段仍可能保留在历史或书签中。
       </div>
       <div class="spacer"></div>
       <div class="notification is-info">
@@ -114,7 +133,7 @@
         <p>1. 在<strong><span style="color: rgb(255, 255, 0);">“YOUR SECRET KEY”</span></strong>输入框中输入你的秘钥。</p>
         <p>2. 输入验证码位数和令牌周期。通常，验证码位数默认为 6 位，令牌周期默认为 30 秒，但是你也可以根据自己的需要进行修改。</p>
         <p>3. 获取验证码：在输入完以上信息后，页面会自动更新验证码并将其显示在页面上。</p>
-        <p>4. 复制验证码：点击<strong><span style="color: rgb(255, 255, 0);">“红色复制”</span></strong>按钮，即可将验证码复制到剪贴板上，粘贴到验证码输入框进行账号验证登录。</p>
+        <p>4. 复制验证码：点击<strong><span style="color: rgb(255, 255, 0);">复制</span></strong>按钮，即可将验证码复制到剪贴板上，粘贴到验证码输入框进行账号验证登录。</p>
       </div>
 
     </div>
