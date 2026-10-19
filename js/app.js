@@ -28,6 +28,7 @@ const app = Vue.createApp({
       digits: DEFAULT_DIGITS,
       period: DEFAULT_PERIOD,
       algorithm: DEFAULT_ALGORITHM,
+      parametersExpanded: false,
       updatingIn: 0,
       token: null,
       error: '',
@@ -96,9 +97,11 @@ const app = Vue.createApp({
         const digits = parsePositiveInteger(this.digits, 0, 6, 8);
         const algorithm = parseAlgorithm(this.algorithm);
         if (!period || !digits) {
+          this.parametersExpanded = true;
           throw new Error('验证码位数必须为 6–8，周期必须为 1–86400 秒。');
         }
         if (!algorithm) {
+          this.parametersExpanded = true;
           throw new Error('算法必须为 SHA1、SHA256 或 SHA512。');
         }
 

@@ -104,99 +104,86 @@ h3 { font-size: 12px; font-weight: 600; line-height: 19px; color: #4b5d50; }
 .site-footer a { color: #385e49; font-weight: 600; }
 .site-footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-/* Keep every original section; compact the settings into one row when space is limited. */
-@media (max-height: 740px), (max-width: 700px) {
+.parameters-toggle { display: none; }
+.parameter-fields { min-width: 0; }
+
+/* Preserve the compact layout that works well in shorter desktop windows. */
+@media (min-width: 761px) and (max-height: 740px) {
   .settings-card { display: grid; grid-template-columns: 1fr 1fr 1.3fr; column-gap: 10px; align-content: start; }
   .card-heading, .secret-field, .settings-note, .error-message { grid-column: 1 / -1; }
-  .field-grid { display: contents; }
+  .parameter-fields, .field-grid { display: contents; }
   .field-grid > .field, .algorithm-field { margin-top: 12px; }
   .intro { padding: 14px 0; }
   .token-display { padding: 14px 0; }
 }
 
-@media (max-width: 700px) {
-  .page-shell { max-width: 540px; padding: 0 14px; }
-  .site-header { min-height: 44px; }
-  .brand { font-size: 17px; gap: 7px; }
-  .brand-icon { width: 28px; height: 30px; }
+/* Taller desktops gain breathing room gradually, not at a single abrupt breakpoint. */
+@media (min-width: 761px) and (min-height: 741px) {
+  main { padding-top: clamp(0px, calc((100svh - 740px) * .18), 64px); }
+  .intro { padding-top: clamp(20px, calc(20px + (100svh - 740px) * .08), 48px); padding-bottom: clamp(18px, calc(18px + (100svh - 740px) * .06), 40px); }
+  .settings-card, .token-card { padding: clamp(22px, calc(22px + (100svh - 740px) * .03), 34px); }
+  .secret-field { margin-top: clamp(16px, calc(16px + (100svh - 740px) * .04), 30px); }
+  .field-grid, .algorithm-field { margin-top: clamp(14px, calc(14px + (100svh - 740px) * .03), 26px); }
+  .quick-guide { padding-top: clamp(20px, calc(20px + (100svh - 740px) * .06), 40px); padding-bottom: clamp(20px, calc(20px + (100svh - 740px) * .06), 40px); }
+}
+
+/* Phones prioritize the key and code; secondary settings remain one tap away. */
+@media (max-width: 760px) {
+  .page-shell { max-width: 580px; padding: 0 18px; }
+  .site-header { min-height: 58px; }
+  .brand { font-size: 18px; gap: 8px; }
+  .brand-caption { font-size: 12px; }
+  .header-tag { font-size: 11px; gap: 5px; }
+  main { display: flex; flex-direction: column; padding: 18px 0 0; }
+  .workspace { order: -1; grid-template-columns: 1fr; gap: 16px; }
+  .settings-card, .token-card { padding: 20px; border-radius: 18px; }
+  .secret-field { margin-top: 18px; }
+  input, select, .secret-input { height: 48px; font-size: 16px; }
+  label { font-size: 13px; margin-bottom: 8px; }
+  .label-row { min-height: 26px; }
+  .field-hint, .settings-note { font-size: 12px; line-height: 19px; }
+  .parameters-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 14px 0 0; margin-top: 14px; border: 0; border-top: 1px solid var(--border); background: transparent; text-align: left; color: var(--text); font-size: 12px; line-height: 20px; }
+  .parameters-summary { display: block; color: var(--muted); font-size: 11px; }
+  .toggle-action { color: var(--accent); }
+  .toggle-action > span { display: inline-block; transition: transform .15s; }
+  .parameters-toggle[aria-expanded="true"] .toggle-action > span { transform: rotate(180deg); }
+  .parameter-fields { display: none; }
+  .parameter-fields.is-expanded { display: block; padding-top: 4px; }
+  .field-grid { gap: 14px; margin-top: 16px; }
+  .algorithm-field { margin-top: 16px; }
+  .section-label { line-height: 13px; margin-bottom: 5px; }
+  .token-display { padding: 20px 0; }
+  #token { font-size: clamp(30px, 9vw, 44px); }
+  .token-description { font-size: 12px; line-height: 19px; margin-top: 10px; }
+  .countdown { margin-bottom: 16px; }
+  .countdown-label { font-size: 12px; }
+  .copy-button { min-height: 48px; font-size: 14px; }
+  .copy-feedback { font-size: 12px; line-height: 19px; min-height: 19px; }
+  .intro { padding: 28px 0 18px; }
+  .eyebrow { font-size: 9px; }
+  h1 { font-size: clamp(24px, 6.5vw, 30px); margin: 7px 0; }
+  .intro p { font-size: 13px; line-height: 21px; }
+  .quick-guide { grid-template-columns: 1fr; gap: 18px; padding: 6px 0 28px; }
+  .guide-item { gap: 12px; }
+  h3 { font-size: 13px; line-height: 21px; }
+  .guide-item p { font-size: 12px; line-height: 20px; margin-top: 4px; }
+  .site-footer { padding: 16px 0; }
+}
+
+@media (max-width: 380px) {
+  .page-shell { padding: 0 12px; }
+  .settings-card, .token-card { padding: 16px; }
+  .brand { gap: 6px; }
   .brand-caption { font-size: 11px; }
-  .header-tag { font-size: 10px; gap: 5px; }
-  .intro { padding: 10px 0; }
-  .eyebrow { font-size: 8px; line-height: 12px; }
-  h1 { font-size: 24px; margin: 3px 0; }
-  .intro p { font-size: 11px; line-height: 18px; }
-  .workspace { grid-template-columns: 1fr; gap: 10px; }
-  .settings-card, .token-card { padding: 14px; border-radius: 16px; }
-  .settings-card { column-gap: 8px; }
-  .section-label { font-size: 8px; line-height: 10px; margin-bottom: 2px; }
-  h2 { font-size: 16px; line-height: 21px; }
-  .secret-field { margin-top: 10px; }
-  label { font-size: 11px; line-height: 16px; margin-bottom: 4px; }
-  .label-row { min-height: 20px; }
-  .text-button { font-size: 11px; line-height: 16px; padding-bottom: 2px; }
-  input, select, .secret-input { font-size: 16px; padding-left: 9px; }
-  .input-suffix input { padding-right: 26px; }
-  .input-suffix span { right: 9px; font-size: 11px; }
-  select { padding-right: 24px; background-position: right 5px center; }
-  .field-hint, .settings-note { font-size: 10px; line-height: 15px; margin-top: 4px; }
-  .field-grid > .field, .algorithm-field { margin-top: 8px; }
-  .token-display { padding: 10px 0; }
-  #token { font-size: clamp(30px, 8vw, 40px); }
-  .token-description { font-size: 10px; line-height: 16px; margin-top: 4px; }
-  .countdown { margin-bottom: 10px; }
-  .countdown-label { margin-bottom: 6px; }
-  .quick-guide { gap: 8px; padding: 14px 0; }
-  .guide-item { gap: 6px; }
-  .step-number { width: 18px; height: 18px; font-size: 9px; }
-  h3 { font-size: 11px; line-height: 18px; }
-  .guide-item p { font-size: 10px; line-height: 16px; }
-  .site-footer { padding: 10px 0; }
+  .header-tag { font-size: 10px; }
 }
 
-/* Short phones and landscape: reduce whitespace, never hide or clip content. */
-@media (max-width: 700px) and (max-height: 620px) {
-  .site-header { min-height: 38px; }
-  .intro { padding: 6px 0; }
-  h1 { font-size: 22px; margin: 2px 0; }
-  .settings-card, .token-card { padding: 10px; }
-  .secret-field { margin-top: 6px; }
-  .field-grid > .field, .algorithm-field { margin-top: 6px; }
-  .token-display { padding: 6px 0; }
-  .countdown { margin-bottom: 8px; }
-  .card-heading > div, .token-card-top > div { display: flex; align-items: center; gap: 7px; }
-  .section-label { margin-bottom: 0; }
-}
-
-@media (max-width: 559px) and (max-height: 520px) {
-  .site-header { min-height: 34px; }
-  .intro { padding: 4px 0; }
-  .eyebrow { line-height: 10px; }
-  h1 { font-size: 21px; line-height: 25px; margin: 1px 0; }
-  .intro p { line-height: 16px; }
-  .settings-card, .token-card { padding: 8px; }
-  .settings-card { row-gap: 0; }
-  .secret-field { display: grid; grid-template-columns: 42px minmax(0, 1fr); column-gap: 6px; margin-top: 4px; }
-  .label-row { align-items: flex-start; justify-content: center; flex-direction: column; }
-  .label-row label { margin-bottom: 0; }
-  .secret-input { grid-column: 2; grid-row: 1; }
-  .field-hint { grid-column: 1 / -1; }
-  .field-grid > .field, .algorithm-field { margin-top: 4px; }
-  .settings-note { margin-top: 3px; }
-  .workspace { gap: 8px; }
-  .token-display { padding: 4px 0; }
-  #token { font-size: 30px; }
-  .token-display { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; }
-  .token-description { margin-top: 0; text-align: left; }
-  .intro { padding: 2px 0; }
-  .countdown { margin-bottom: 6px; }
-  .countdown-label { margin-bottom: 4px; }
-}
-
-@media (min-width: 560px) and (max-width: 700px) and (max-height: 500px) {
+/* Landscape phones have enough width for two cards, without squeezing the typography. */
+@media (min-width: 620px) and (max-width: 760px) and (max-height: 500px) {
   .page-shell { max-width: 1088px; }
   .workspace { grid-template-columns: 1.08fr 1fr; }
-  .settings-card { column-gap: 6px; }
-  select { font-size: 14px; }
+  .settings-card, .token-card { padding: 16px; }
+  .token-state { font-size: 9px; }
   #token { font-size: 30px; }
 }
 
