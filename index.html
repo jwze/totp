@@ -5,149 +5,130 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <title>TOTP Generator</title>
-  <link rel="stylesheet" href="css/bulma-0.9.4.min.css">
-  <link rel="shortcut icon" href="favicon.ico" />
-  <style>
-    [v-cloak] {
-      display: none;
-    }
-
-    html,
-    body {
-      height: 100%;
-    }
-
-    body>footer {
-      position: sticky;
-      top: 100vh;
-    }
-
-    .footer {
-      padding: 2rem;
-    }
-
-    #clipboard-button {
-      transition: all 0.3s ease-in-out;
-    }
-
-    #clipboard-button:hover {
-      transform: scale(1.2);
-    }
-
-    .spacer {
-      height: 14px;
-    }
-
-    .color-gradient {
-      -webkit-text-fill-color: transparent;
-      display: inline-block;
-    }
-
-    @media screen and (min-width: 1068px) {
-      .container {
-        max-width: 600px;
-        width: 600px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-
-  <noscript><p class="notification is-warning">此工具需要启用 JavaScript 才能在本地生成验证码。</p></noscript>
+  <meta name="theme-color" content="#f5f7f5">
+  <meta name="description" content="简洁、轻巧的 TOTP 动态验证码生成器。输入密钥，即刻获取验证码。">
+  <title>TOTP · 动态验证码</title>
+  <link rel="stylesheet" href="css/app.css?v=3.0">
+  <link rel="icon" href="favicon.ico">
   <script defer src="js/vue-3.3.2.global.prod.js"></script>
   <script defer src="js/otpauth-9.1.3.min.js"></script>
   <script defer src="js/clipboard-2.0.6.min.js"></script>
   <script defer src="js/app.js?v=2.0"></script>
+</head>
 
-  <section id="app" class="section" v-cloak>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="TOTP 首页">
+        <span class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 4.5 6v5.3c0 4.5 3.1 7.7 7.5 9.7 4.4-2 7.5-5.2 7.5-9.7V6L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m8.5 11.8 2.3 2.3 4.7-4.7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        TOTP<span class="brand-divider"></span><span class="brand-caption">验证码工具</span>
+      </a>
+      <span class="header-tag"><span class="status-dot"></span>简单 · 即时</span>
+    </header>
 
-    <div class="container">
+    <noscript><p class="error-message">请启用 JavaScript，以使用动态验证码生成器。</p></noscript>
 
-      <h1 class="title">TOTP Token Generator</h1>
+    <main id="app" v-cloak>
+      <section class="intro" aria-labelledby="page-title">
+        <span class="eyebrow">TIME-BASED ONE-TIME PASSWORD</span>
+        <h1 id="page-title">你的验证码，<span>即刻生成。</span></h1>
+        <p>输入密钥，获取随时间自动更新的动态验证码。</p>
+      </section>
 
-      <div class="field">
-        <label class="label is-uppercase" for="secret-key">Your Secret Key</label>
-        <div class="control">
-          <input id="secret-key" class="input" type="text" v-model.trim="secret_key" autocomplete="off" spellcheck="false" placeholder="The secret key (in base-32 format)">
-        </div>
-      </div>
+      <div class="workspace">
+        <section class="settings-card" aria-labelledby="settings-title">
+          <div class="card-heading">
+            <div>
+              <span class="section-label">01 / CONFIGURE</span>
+              <h2 id="settings-title">配置密钥</h2>
+            </div>
+            <span class="subtle-tag">TOTP</span>
+          </div>
 
-      <div class="field">
-        <label class="label is-uppercase" for="digits">Number of Digits</label>
-        <div class="control">
-          <input id="digits" class="input" type="number" v-model.number="digits" min="6" max="8" step="1" inputmode="numeric" placeholder="Usually 6">
-        </div>
-      </div>
+          <div class="field secret-field">
+            <div class="label-row">
+              <label for="secret-key">密钥</label>
+              <button v-if="secret_key" type="button" class="text-button" @click="secret_key = ''">清空</button>
+            </div>
+            <input id="secret-key" class="secret-input" type="text" v-model.trim="secret_key"
+              autocomplete="off" autocapitalize="characters" spellcheck="false"
+              placeholder="输入 Base32 密钥" aria-describedby="secret-hint" :aria-invalid="!!error">
+            <p class="field-hint" id="secret-hint">支持大小写字母和空格，粘贴即可识别。</p>
+          </div>
 
-      <div class="field">
-        <label class="label is-uppercase" for="period">Token Period (in seconds)</label>
-        <div class="control">
-          <input id="period" class="input" type="number" v-model.number="period" min="1" max="86400" step="1" inputmode="numeric" placeholder="Usually 30">
-        </div>
-      </div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="digits">验证码位数</label>
+              <div class="input-suffix">
+                <input id="digits" type="number" v-model.number="digits" min="6" max="8" step="1" inputmode="numeric">
+                <span aria-hidden="true">位</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="period">更新周期</label>
+              <div class="input-suffix">
+                <input id="period" type="number" v-model.number="period" min="1" max="86400" step="1" inputmode="numeric">
+                <span aria-hidden="true">秒</span>
+              </div>
+            </div>
+          </div>
 
-      <div class="field">
-        <label class="label is-uppercase" for="algorithm">Algorithm</label>
-        <div class="control">
-          <div class="select">
+          <div class="field algorithm-field">
+            <label for="algorithm">加密算法</label>
             <select id="algorithm" v-model="algorithm">
-              <option>SHA1</option>
-              <option>SHA256</option>
-              <option>SHA512</option>
+              <option value="SHA1">SHA-1</option>
+              <option value="SHA256">SHA-256</option>
+              <option value="SHA512">SHA-512</option>
             </select>
           </div>
-        </div>
-      </div>
-      <div class="content">
-        <span class="has-text-grey is-size-7">Updating in {{ updatingIn }} seconds</span>
-        <progress class="progress is-info is-small" v-bind:value="updatingIn" :max="token ? Number(period) : 30" aria-label="验证码剩余有效时间"></progress>
+          <p class="settings-note">通常使用 6 位验证码、30 秒周期和 SHA-1。</p>
+          <div v-if="error" class="error-message" role="alert">{{ error }}</div>
+        </section>
+
+        <section class="token-card" :class="{ 'is-ready': token }" aria-labelledby="token-title">
+          <div class="token-card-top">
+            <div>
+              <span class="section-label">02 / YOUR CODE</span>
+              <h2 id="token-title">动态验证码</h2>
+            </div>
+            <span class="token-state"><span class="status-dot"></span>{{ token ? '实时更新中' : '等待输入' }}</span>
+          </div>
+
+          <div class="token-display">
+            <p id="token" :class="{ 'token-placeholder': !token }" aria-label="当前验证码">{{ token || '------' }}</p>
+            <p class="token-description">{{ token ? '准备就绪，点击下方按钮复制' : '输入密钥后，验证码将在这里出现' }}</p>
+          </div>
+
+          <div class="countdown">
+            <div class="countdown-label">
+              <span>{{ token ? '距离下次更新' : '等待生成验证码' }}</span>
+              <span class="countdown-value"><strong>{{ token ? updatingIn : '—' }}</strong> 秒</span>
+            </div>
+            <progress :value="updatingIn" :max="token ? Number(period) : 30" aria-label="验证码剩余有效时间"></progress>
+          </div>
+
+          <button type="button" id="clipboard-button" class="copy-button" :disabled="!token" aria-label="复制验证码">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M15.5 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.7"/></svg>
+            复制验证码
+          </button>
+          <p class="copy-feedback" role="status">{{ copyMessage }}</p>
+        </section>
       </div>
 
-      <div class="box">
-        <p class="title is-size-1 has-text-centered" id="token">
-          {{ token || '------' }}
-        </p>
-      </div>
-      <div v-if="error" class="notification is-danger" role="alert">
-        {{ error }}
-      </div>
+      <section class="quick-guide" aria-label="使用指南">
+        <div class="guide-item"><span class="step-number">1</span><div><h3>填入密钥</h3><p>粘贴账号提供的 Base32 密钥。</p></div></div>
+        <div class="guide-item"><span class="step-number">2</span><div><h3>确认参数</h3><p>与目标服务的验证设置保持一致。</p></div></div>
+        <div class="guide-item"><span class="step-number">3</span><div><h3>复制并验证</h3><p>在有效期内粘贴验证码，完成验证。</p></div></div>
+      </section>
+    </main>
 
-      <div class="control is-clearfix" style="text-align: center;">
-        <button type="button" id="clipboard-button" :disabled="!token" title="Copy token to clipboard"
-          aria-label="复制验证码" class="button is-large is-light">
-          <img src="img/copy.svg" alt="" height="65" width="65">
-        </button>
-      </div>
-      <p class="has-text-centered" role="status">{{ copyMessage }}</p>
-      <div class="notification is-warning mt-4">
-        密钥仅在本地计算，不会由应用主动上传或保存。请只在可信设备上使用。
-        页面不再预填测试密钥；公开示例密钥不能用于真实账号。
-        避免在 URL 查询参数中放入真实密钥，它可能进入服务器日志和浏览器历史。
-        使用 URL 时优先使用 # 片段，但片段仍可能保留在历史或书签中。
-      </div>
-      <div class="spacer"></div>
-      <div class="notification is-info">
-        <p><strong>使用说明：</strong></p>
-        <p>1. 在<strong><span style="color: rgb(255, 255, 0);">“YOUR SECRET KEY”</span></strong>输入框中输入你的秘钥。</p>
-        <p>2. 输入验证码位数和令牌周期。通常，验证码位数默认为 6 位，令牌周期默认为 30 秒，但是你也可以根据自己的需要进行修改。</p>
-        <p>3. 获取验证码：在输入完以上信息后，页面会自动更新验证码并将其显示在页面上。</p>
-        <p>4. 复制验证码：点击<strong><span style="color: rgb(255, 255, 0);">复制</span></strong>按钮，即可将验证码复制到剪贴板上，粘贴到验证码输入框进行账号验证登录。</p>
-      </div>
-
-    </div>
-
-  </section>
-
-  <footer class="footer">
-    <div class="container">
-      <div class="content has-text-centered">
-        Built by <a href="https://jvaz.eu.org/">Jvz</a>.
-      </div>
-    </div>
-  </footer>
-
+    <footer class="site-footer">
+      <span>TOTP Generator</span>
+      <span>Crafted by <a href="https://115613.xyz/">Jvz <span aria-hidden="true">↗</span></a></span>
+    </footer>
+  </div>
 </body>
 
 </html>
